@@ -58,9 +58,9 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
                         @PathVariable Long itemId,
-                        @RequestBody ItemDto ItemDto) {
-        log.info("PATCH /items/{} request: {}", itemId, ItemDto);
-        ItemDto updatedItemDto = itemService.update(userId, itemId, ItemDto);
+                        @RequestBody ItemDto itemDto) {
+        log.info("PATCH /items/{} request: {}", itemId, itemDto);
+        ItemDto updatedItemDto = itemService.update(userId, itemId, itemDto);
         log.info("PATCH /items/{} response: success {}", itemId, updatedItemDto);
         return updatedItemDto;
     }

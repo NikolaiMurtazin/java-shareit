@@ -4,8 +4,11 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
 public class ItemMapper {
+    private ItemMapper() {
+    }
+
     public static ItemDto toItemDto(Item item) {
-        if(item == null) {
+        if (item == null) {
             return null;
         }
         return ItemDto.builder()
@@ -17,7 +20,7 @@ public class ItemMapper {
     }
 
     public static Item toItem(ItemDto itemDto) {
-        if(itemDto == null) {
+        if (itemDto == null) {
             return null;
         }
         return Item.builder()
