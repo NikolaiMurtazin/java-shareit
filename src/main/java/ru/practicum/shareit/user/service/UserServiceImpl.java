@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private static final int MAX_SIZE = 30;
 
     @Override
     public Collection<UserDto> getAll() {
@@ -25,7 +26,6 @@ public class UserServiceImpl implements UserService {
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
-
 
     @Override
     public UserDto getById(Long userId) {
@@ -39,17 +39,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
-        validateEmailUniqueness(userDto.getEmail(), userDto.getId());
         User user = userRepository.create(UserMapper.toUser(userDto));
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(Long userId, UserDto userDto) {
-        checkUserExistence(userId, "UPDATE-USER");
-        validateEmailUniqueness(userDto.getEmail(), userId);
-        User user = userRepository.update(userId, UserMapper.toUser(userDto));
-        return UserMapper.toUserDto(user);
+
+        User userToUpdate = userRepository.getById(userId)
+                .orElseThrow(() -> {
+                    log.info("UPDATE-USER Пользователь с id={} не найден", userId);
+                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
+                });
+        User user = UserMapper.toUser(userDto);
+
+        if (user.getName() != null && !user.getName().isBlank()
+                && user.getName().length() <= MAX_SIZE) {
+            userToUpdate.setName(user.getName());
+        }
+
+        if (user.getEmail() != null && !user.getEmail().isBlank()
+                && user.getEmail().length() <= MAX_SIZE
+                && !userToUpdate.getEmail().equals(user.getEmail())) {
+            userRepository.existsByEmail(user.getEmail(), userToUpdate.getEmail());
+            userToUpdate.setEmail(user.getEmail());
+        }
+        return UserMapper.toUserDto(userRepository.update(userId, userToUpdate));
     }
 
     @Override
@@ -64,14 +79,5 @@ public class UserServiceImpl implements UserService {
                     log.info("{} Пользователь с id={} не найден", method, userId);
                     return new NotFoundException("Пользователя с id=" + userId + " не существует");
                 });
-    }
-
-    private void validateEmailUniqueness(String email, Long userId) {
-        if (userId == null && userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email must be unique");
-        }
-        if (userId != null && userRepository.existsByEmailAndIdNot(email, userId)) {
-            throw new IllegalArgumentException("Email must be unique");
-        }
     }
 }

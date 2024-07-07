@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * TODO Sprint add-controllers.
@@ -76,6 +77,9 @@ public class ItemController {
     @GetMapping("/search")
     public Collection<ItemDto> getAllByText(@RequestParam String text) {
         log.info("GET /items/search?text={} request", text);
+        if (text == null || text.isEmpty()) {
+            return Collections.emptyList();
+        }
         Collection<ItemDto> items = itemService.getAllByText(text);
         log.info("GET /items/search?text={} response: success {}", text, items.size());
         return items;

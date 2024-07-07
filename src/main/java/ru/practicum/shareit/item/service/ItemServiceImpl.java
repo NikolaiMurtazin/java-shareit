@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private static final int MAX_SIZE_NAME = 30;
+    private static final int MAX_SIZE_DESCRIPTION = 150;
 
     @Override
     public Collection<ItemDto> getAllByUsersId(Long userId) {
@@ -34,16 +36,34 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto add(Long userId, ItemDto itemDto) {
         checkUserExistence(userId, "ADD-ITEM");
-        Item item = itemRepository.add(userId, ItemMapper.toItem(itemDto));
+        Item item = itemRepository.add(userId, ItemMapper.toItem(itemDto, userId));
         return ItemMapper.toItemDto(item);
     }
 
     @Override
     public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
         checkUserExistence(userId, "UPDATE-ITEM");
-        checkItemExistence(itemId, "UPDATE-ITEM");
-        Item item = itemRepository.update(userId, itemId, ItemMapper.toItem(itemDto));
-        return ItemMapper.toItemDto(item);
+        Item updatedItem = itemRepository.getById(itemId)
+                .orElseThrow(() -> {
+                    log.info("UPDATE-ITEM Предмет с id={} не найден", itemId);
+                    return new NotFoundException("Предмета с id=" + itemId + " не существует");
+                });
+        Item item = ItemMapper.toItem(itemDto);
+        if (!userId.equals(updatedItem.getOwnerId())) {
+            throw new NotFoundException("The user's ID is different from the owner's ID");
+        }
+
+        if (item.getName() != null && !item.getName().isBlank() && item.getName().length() <= MAX_SIZE_NAME) {
+            updatedItem.setName(item.getName());
+        }
+        if (item.getDescription() != null && !item.getDescription().isBlank()
+                && item.getDescription().length() <= MAX_SIZE_DESCRIPTION) {
+            updatedItem.setDescription(item.getDescription());
+        }
+        if (item.getAvailable() != null) {
+            updatedItem.setAvailable(item.getAvailable());
+        }
+        return ItemMapper.toItemDto(itemRepository.update(userId, itemId, updatedItem));
     }
 
     @Override

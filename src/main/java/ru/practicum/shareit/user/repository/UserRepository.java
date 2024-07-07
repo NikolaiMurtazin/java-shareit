@@ -16,7 +16,5 @@ public interface UserRepository {
 
     void delete(Long userId);
 
-    boolean existsByEmail(String email);
-
-    boolean existsByEmailAndIdNot(String email, Long id);
+    void existsByEmail(String newEmail, String oldEmail);
 }

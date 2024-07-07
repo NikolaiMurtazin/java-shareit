@@ -6,13 +6,16 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
 public class InMemoryUserRepository implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
+    private final Set<String> emails = new HashSet<>();
     private Long lastId = 0L;
 
     @Override
@@ -27,39 +30,35 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User create(User user) {
+        if (emails.contains(user.getEmail())) {
+            throw new IllegalArgumentException("Email must be unique");
+        }
         user.setId(++lastId);
         users.put(user.getId(), user);
+        emails.add(user.getEmail());
         return user;
     }
 
     @Override
     public User update(Long userId, User user) {
-        User userToUpdate = users.get(userId);
-        if (user.getName() != null) {
-            userToUpdate.setName(user.getName());
-        }
-        if (user.getEmail() != null) {
-            userToUpdate.setEmail(user.getEmail());
-        }
-        users.put(userToUpdate.getId(), userToUpdate);
-        return userToUpdate;
+        users.put(user.getId(), user);
+        return user;
     }
 
     @Override
     public void delete(Long userId) {
-        users.remove(userId);
+        User user = users.remove(userId);
+        if (user != null) {
+            emails.remove(user.getEmail());
+        }
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(email));
+    public void existsByEmail(String newEmail, String oldEmail) {
+        if (emails.contains(newEmail)) {
+            throw new IllegalArgumentException("Email must be unique");
+        }
+        emails.remove(oldEmail);
+        emails.add(newEmail);
     }
-
-    @Override
-    public boolean existsByEmailAndIdNot(String email, Long id) {
-        return users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(email) && !user.getId().equals(id));
-    }
-
 }

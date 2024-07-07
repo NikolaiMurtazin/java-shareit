@@ -30,4 +30,17 @@ public class ItemMapper {
                 .available(itemDto.getAvailable())
                 .build();
     }
+
+    public static Item toItem(ItemDto itemDto, Long userId) {
+        if (itemDto == null) {
+            return null;
+        }
+        return Item.builder()
+                .id(itemDto.getId())
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .ownerId(userId)
+                .build();
+    }
 }
