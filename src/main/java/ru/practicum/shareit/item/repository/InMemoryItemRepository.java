@@ -21,27 +21,28 @@ public class InMemoryItemRepository implements ItemRepository {
     private Long lastId = 0L;
 
     @Override
-    public Collection<Item> getAllByUsersId(Long userId) {
+    public Collection<Item> getAllByUsersId(long userId) {
         return itemsByOwner.getOrDefault(userId, Collections.emptyList());
     }
 
     @Override
-    public Item add(Long userId, Item item) {
+    public Item add(long userId, Item item) {
         item.setId(++lastId);
+        item.setOwnerId(userId);
         items.put(item.getId(), item);
         itemsByOwner.computeIfAbsent(userId, k -> new ArrayList<>()).add(item);
         return item;
     }
 
     @Override
-    public Item update(Long userId, Long itemId, Item item) {
+    public Item update(Item item) {
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
-    public void delete(Long userId, Long itemId) {
-        if (userId.equals(items.get(itemId).getOwnerId())) {
+    public void delete(long userId, long itemId) {
+        if (userId == items.get(itemId).getOwnerId()) {
             Item item = items.remove(itemId);
             itemsByOwner.computeIfAbsent(userId, k -> new ArrayList<>()).remove(item);
             if (itemsByOwner.get(userId).isEmpty()) {
@@ -52,7 +53,7 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
-    public Optional<Item> getById(Long itemId) {
+    public Optional<Item> getById(long itemId) {
         return Optional.ofNullable(items.get(itemId));
     }
 

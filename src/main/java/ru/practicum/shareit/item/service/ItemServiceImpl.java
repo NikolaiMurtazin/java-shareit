@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -25,31 +27,31 @@ public class ItemServiceImpl implements ItemService {
     private static final int MAX_SIZE_DESCRIPTION = 150;
 
     @Override
-    public Collection<ItemDto> getAllByUsersId(Long userId) {
+    public Collection<ItemDto> getAllByUsersId(long userId) {
         checkUserExistence(userId, "GET-ALL-ITEMS");
         Collection<Item> items = itemRepository.getAllByUsersId(userId);
         return items.stream()
-                .map(ItemMapper::toItemDto)
+                .map(ItemMapper.INSTANCE::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto add(Long userId, ItemDto itemDto) {
-        checkUserExistence(userId, "ADD-ITEM");
-        Item item = itemRepository.add(userId, ItemMapper.toItem(itemDto, userId));
-        return ItemMapper.toItemDto(item);
+    public ItemDto create(long userId, ItemCreateDto itemCreateDto) {
+        checkUserExistence(userId, "CREATE-ITEM");
+        Item item = itemRepository.add(userId, ItemMapper.INSTANCE.toItem(itemCreateDto));
+        return ItemMapper.INSTANCE.toItemDto(item);
     }
 
     @Override
-    public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
+    public ItemDto update(long userId, long itemId, ItemUpdateDto itemUpdateDto) {
         checkUserExistence(userId, "UPDATE-ITEM");
         Item updatedItem = itemRepository.getById(itemId)
                 .orElseThrow(() -> {
                     log.info("UPDATE-ITEM Предмет с id={} не найден", itemId);
                     return new NotFoundException("Предмета с id=" + itemId + " не существует");
                 });
-        Item item = ItemMapper.toItem(itemDto);
-        if (!userId.equals(updatedItem.getOwnerId())) {
+        Item item = ItemMapper.INSTANCE.toItem(itemUpdateDto);
+        if (userId != (updatedItem.getOwnerId())) {
             throw new NotFoundException("The user's ID is different from the owner's ID");
         }
 
@@ -63,24 +65,24 @@ public class ItemServiceImpl implements ItemService {
         if (item.getAvailable() != null) {
             updatedItem.setAvailable(item.getAvailable());
         }
-        return ItemMapper.toItemDto(itemRepository.update(userId, itemId, updatedItem));
+        return ItemMapper.INSTANCE.toItemDto(itemRepository.update(updatedItem));
     }
 
     @Override
-    public void delete(Long userId, Long itemId) {
+    public void delete(long userId, long itemId) {
         checkUserExistence(userId, "DELETE-ITEM");
         checkItemExistence(itemId, "DELETE-ITEM");
         itemRepository.delete(userId, itemId);
     }
 
     @Override
-    public ItemDto getById(Long itemId) {
+    public ItemDto getById(long itemId) {
         Item item = itemRepository.getById(itemId)
                 .orElseThrow(() -> {
                     log.info("GET-ITEM-BY-ID Предмет с id={} не найден", itemId);
                     return new NotFoundException("Предмета с id=" + itemId + " не существует");
                 });
-        return ItemMapper.toItemDto(item);
+        return ItemMapper.INSTANCE.toItemDto(item);
     }
 
     @Override
@@ -90,7 +92,7 @@ public class ItemServiceImpl implements ItemService {
         }
         Collection<Item> items = itemRepository.getAllByText(text);
         return items.stream()
-                .map(ItemMapper::toItemDto)
+                .map(ItemMapper.INSTANCE::toItemDto)
                 .collect(Collectors.toList());
     }
 

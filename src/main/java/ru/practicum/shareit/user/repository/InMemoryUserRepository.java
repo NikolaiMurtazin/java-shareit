@@ -24,7 +24,7 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> getById(Long userId) {
+    public Optional<User> getById(long userId) {
         return Optional.ofNullable(users.get(userId));
     }
 
@@ -40,13 +40,13 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public User update(Long userId, User user) {
+    public User update(long userId, User user) {
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
-    public void delete(Long userId) {
+    public void delete(long userId) {
         User user = users.remove(userId);
         if (user != null) {
             emails.remove(user.getEmail());

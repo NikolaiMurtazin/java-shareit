@@ -11,14 +11,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
-
-/**
- * TODO Sprint add-controllers.
- */
 
 @Slf4j
 @Validated
@@ -30,42 +28,27 @@ public class UserController {
 
     @GetMapping
     public Collection<UserDto> getAll() {
-        log.info("GET /users request");
-        Collection<UserDto> users = userService.getAll();
-        log.info("GET /users response: success {}", users.size());
-        return users;
+        return userService.getAll();
     }
 
     @GetMapping("/{userId}")
-    public UserDto getById(@PathVariable Long userId) {
-        log.info("GET /users/{} request", userId);
-        UserDto userDto = userService.getById(userId);
-        log.info("GET /users/{} response: success {}", userId, userDto);
-        return userDto;
+    public UserDto getById(@PathVariable long userId) {
+        return userService.getById(userId);
     }
 
     @PostMapping
-    public UserDto create(@Validated @RequestBody UserDto userDto) {
-        log.info("POST /users request: {}", userDto);
-        UserDto createdUserDto = userService.create(userDto);
-        log.info("POST /users response: success {}", createdUserDto);
-        return createdUserDto;
+    public UserDto create(@Validated @RequestBody UserCreateDto userCreateDto) {
+        return userService.create(userCreateDto);
     }
 
     @PatchMapping("/{userId}")
-    public UserDto update(@PathVariable Long userId,
-                        @RequestBody UserDto userDto) {
-        log.info("PATCH /users/{} request: {}", userId, userDto);
-        UserDto updateUserDto = userService.update(userId, userDto);
-        log.info("PATCH /users/{} response: success {}", userId, updateUserDto);
-        System.out.println("ошибка где-то здесь");
-        return updateUserDto;
+    public UserDto update(@PathVariable long userId,
+                        @Validated @RequestBody UserUpdateDto userUpdateDto) {
+        return userService.update(userId, userUpdateDto);
     }
 
     @DeleteMapping("/{userId}")
     public void delete(@PathVariable long userId) {
-        log.info("DELETE /users/{} request", userId);
         userService.delete(userId);
-        log.info("DELETE /users/{} response: success", userId);
     }
 }

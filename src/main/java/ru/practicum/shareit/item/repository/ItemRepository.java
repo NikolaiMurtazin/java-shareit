@@ -6,15 +6,15 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface ItemRepository {
-    Collection<Item> getAllByUsersId(Long userId);
+    Collection<Item> getAllByUsersId(long userId);
 
-    Item add(Long userId, Item item);
+    Item add(long userId, Item item);
 
-    Item update(Long userId, Long itemId, Item item);
+    Item update(Item item);
 
-    void delete(Long userId, Long itemId);
+    void delete(long userId, long itemId);
 
-    Optional<Item> getById(Long itemId);
+    Optional<Item> getById(long itemId);
 
     Collection<Item> getAllByText(String text);
 }
