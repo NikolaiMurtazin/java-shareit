@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @RestControllerAdvice
@@ -38,11 +39,8 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleException(final Exception e) {
         log.error("Error", e);
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
-        e.printStackTrace(pw);
-        errorResponse.setStackTrace(sw.toString());
-        return errorResponse;
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintWriter(out));
+        return new ErrorResponse(out.toString(StandardCharsets.UTF_8));
     }
 }

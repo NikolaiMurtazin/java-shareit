@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -23,15 +24,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserDto> getAll() {
-        Collection<User> users = userRepository.getAll();
-        return users.stream()
-                .map(UserMapper.INSTANCE::toUserDto)
-                .collect(Collectors.toList());
+        Collection<User> users = userRepository.findAll();
+        return users.stream().map(UserMapper.INSTANCE::toUserDto).collect(Collectors.toList());
     }
 
     @Override
     public UserDto getById(long userId) {
-        User user = userRepository.getById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.info("GET Пользователь с id={} не найден", userId);
                     return new NotFoundException("Пользователя с id=" + userId + " не существует");
@@ -40,43 +39,49 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto create(UserCreateDto userCreateDto) {
-        User user = userRepository.create(UserMapper.INSTANCE.toUser(userCreateDto));
+        User user = userRepository.save(UserMapper.INSTANCE.toUser(userCreateDto));
         return UserMapper.INSTANCE.toUserDto(user);
     }
 
     @Override
+    @Transactional
     public UserDto update(long userId, UserUpdateDto userUpdateDto) {
-
-        User userToUpdate = userRepository.getById(userId)
+        User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.info("UPDATE-USER Пользователь с id={} не найден", userId);
                     return new NotFoundException("Пользователя с id=" + userId + " не существует");
                 });
-        User user = UserMapper.INSTANCE.toUser(userUpdateDto);
 
-        if (user.getName() != null && !user.getName().isBlank()
-                && user.getName().length() <= MAX_SIZE) {
-            userToUpdate.setName(user.getName());
+        if (userUpdateDto.getName() != null && !userUpdateDto.getName().isBlank()) {
+            if (userUpdateDto.getName().length() > MAX_SIZE) {
+                throw new IllegalArgumentException("Имя не должно превышать " + MAX_SIZE + " символов");
+            }
+            userToUpdate.setName(userUpdateDto.getName());
         }
 
-        if (user.getEmail() != null && !user.getEmail().isBlank()
-                && user.getEmail().length() <= MAX_SIZE
-                && !userToUpdate.getEmail().equals(user.getEmail())) {
-            userRepository.existsByEmail(user.getEmail(), userToUpdate.getEmail());
-            userToUpdate.setEmail(user.getEmail());
+        if (userUpdateDto.getEmail() != null && !userUpdateDto.getEmail().isBlank()) {
+            if (userUpdateDto.getEmail().length() > MAX_SIZE) {
+                throw new IllegalArgumentException("Email не должен превышать " + MAX_SIZE + " символов");
+            }
+            if (!userToUpdate.getEmail().equals(userUpdateDto.getEmail())) {
+                userToUpdate.setEmail(userUpdateDto.getEmail());
+            }
         }
-        return UserMapper.INSTANCE.toUserDto(userRepository.update(userId, userToUpdate));
+
+        return UserMapper.INSTANCE.toUserDto(userRepository.save(userToUpdate));
     }
 
     @Override
+    @Transactional
     public void delete(long userId) {
         checkUserExistence(userId, "DELETE-USER");
-        userRepository.delete(userId);
+        userRepository.deleteById(userId);
     }
 
     private void checkUserExistence(Long userId, String method) {
-        userRepository.getById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.info("{} Пользователь с id={} не найден", method, userId);
                     return new NotFoundException("Пользователя с id=" + userId + " не существует");
