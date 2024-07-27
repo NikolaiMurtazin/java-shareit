@@ -36,12 +36,12 @@ public class ErrorHandler {
         return new ErrorMessage(e.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorMessage handleException(final Exception e) {
         log.error("Error", e);
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        e.printStackTrace(new PrintWriter(out));
+        e.printStackTrace(new PrintWriter(out, true, StandardCharsets.UTF_8));
         return new ErrorMessage(out.toString(StandardCharsets.UTF_8));
     }
 }
