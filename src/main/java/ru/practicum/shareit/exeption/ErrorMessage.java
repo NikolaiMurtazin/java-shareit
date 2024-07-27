@@ -7,12 +7,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ErrorResponse {
-    String message;
+public class ErrorMessage {
+    String error;
 
     String stackTrace;
 
-    public ErrorResponse(String message) {
-        this.message = message;
+    public ErrorMessage(String error) {
+        this.error = error;
     }
 }
