@@ -146,15 +146,10 @@ public class ItemServiceImpl implements ItemService {
 
         List<Booking> endedBookings = bookingRepository.findLastBookingsByItemId(itemId);
 
-        String text = commentDto.getText();
-        if (text == null || text.isEmpty()) {
-            throw new ValidationException("Комментарий не может быть пустым");
-        }
-
         for (Booking booking : endedBookings) {
             if (booking.getBooker().getId().equals(userId)) {
                 Comment comment = Comment.builder()
-                        .text(text)
+                        .text(commentDto.getText())
                         .item(item)
                         .author(author)
                         .created(LocalDateTime.now())

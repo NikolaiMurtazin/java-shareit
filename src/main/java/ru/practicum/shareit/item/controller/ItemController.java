@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.controller;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -73,6 +74,10 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader(USER_ID_HEADER) long userId,
                                     @PathVariable long itemId, @RequestBody CommentDto commentDto) {
+        String text = commentDto.getText();
+        if (text == null || text.isEmpty()) {
+            throw new ValidationException("Комментарий не может быть пустым");
+        }
         return itemService.addComment(itemId, userId, commentDto);
     }
 }

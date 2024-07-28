@@ -33,9 +33,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemOwnerIdOrderByStartDesc(Long ownerId);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.start >= CURRENT_TIMESTAMP AND b.status = 'APPROVED' ORDER BY b.start ASC")
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.start >= CURRENT_TIMESTAMP " +
+            "AND b.status = 'APPROVED' " +
+            "ORDER BY b.start ASC")
     List<Booking> findUpcomingBookingsByItemId(@Param("itemId") Long itemId);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.start <= CURRENT_TIMESTAMP AND b.status = 'APPROVED' ORDER BY b.start DESC")
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.start <= CURRENT_TIMESTAMP " +
+            "AND b.status = 'APPROVED' " +
+            "ORDER BY b.start DESC")
     List<Booking> findLastBookingsByItemId(@Param("itemId") Long itemId);
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND (b.status = 'APPROVED' OR b.status = 'WAITING') " +
+            "AND (b.start < :end AND b.end > :start)")
+    List<Booking> findConflictingBookings(@Param("itemId") Long itemId, @Param("start") LocalDateTime start,
+                                            @Param("end") LocalDateTime end);
 }

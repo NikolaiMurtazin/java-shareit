@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.controller;
 
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -49,9 +48,6 @@ public class BookingController {
     public Collection<BookingDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) Long userId, @RequestParam(defaultValue =
             "ALL") String state) {
         BookingState stateEnum = BookingState.from(state);
-        if (stateEnum == null) {
-            throw new ValidationException("Unknown state: " + state);
-        }
         return bookingService.getAllByUserId(userId, stateEnum);
     }
 
@@ -59,9 +55,6 @@ public class BookingController {
     public Collection<BookingDto> getAllByOwnerId(@RequestHeader(USER_ID_HEADER) Long ownerId,
                                                     @RequestParam(defaultValue = "ALL") String state) {
         BookingState stateEnum = BookingState.from(state);
-        if (stateEnum == null) {
-            throw new ValidationException("Unknown state: " + state);
-        }
         return bookingService.getAllByOwnerId(ownerId, stateEnum);
     }
 }

@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.model;
 
+import jakarta.validation.ValidationException;
+
 public enum BookingState {
     ALL,
     CURRENT,
@@ -14,6 +16,6 @@ public enum BookingState {
                 return bookingState;
             }
         }
-        return null;
+        throw new ValidationException("Unknown state: " + state);
     }
 }

@@ -54,6 +54,12 @@ public class BookingServiceImpl implements BookingService {
         if (Objects.equals(item.getOwner().getId(), userId)) {
             throw new NotFoundException("У вас не найдено такой брони");
         }
+        List<Booking> conflictingBookings = bookingRepository.findConflictingBookings(
+                bookingCreateDto.getItemId(), bookingCreateDto.getStart(), bookingCreateDto.getEnd());
+
+        if (!conflictingBookings.isEmpty()) {
+            throw new ValidationException("Данное бронирование пересекается с существующими бронированиями");
+        }
 
         Booking booking = BookingMapper.INSTANCE.toBooking(bookingCreateDto);
         booking.setBooker(user);
