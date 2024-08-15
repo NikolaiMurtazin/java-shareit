@@ -35,10 +35,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     public ItemRequestDto create(long userId, ItemRequestDto itemRequestDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("CREATE-REQUEST Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         ItemRequest itemRequest = ItemRequestMapper.INSTANCE.toItem(itemRequestDto);
         itemRequest.setRequestor(user);
         itemRequest.setCreated(LocalDateTime.now());
@@ -49,10 +46,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestInfoDto> getAllByUserId(long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("GET-ALL-REQUESTS-BY-USER-ID Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         return itemRequestRepository.findAllByRequestorId(userId).stream()
                 .sorted(Comparator.comparing(ItemRequest::getCreated).reversed())
                 .map(request -> getById(userId, request.getId()))
@@ -62,10 +56,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestDto> getAllOtherUsers(long userId, int from, int size) {
         userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("GET-ALL-REQUESTS-OTHER-USERS Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
         return itemRequestRepository.findAllByOrderByCreatedDesc(page).stream()
                 .map(ItemRequestMapper.INSTANCE::toItemRequestDto).collect(Collectors.toList());
@@ -76,15 +67,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestInfoDto getById(long userId, long requestId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("GET-REQUEST-BY-ID Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         ItemRequest request = itemRequestRepository.findById(requestId)
-                .orElseThrow(() -> {
-                    log.info("GET-REQUEST-BY-ID Запрос с id={} не найден", userId);
-                    return new NotFoundException("Запроса с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Запроса с id=" + userId + " не существует"));
         Collection<ItemForRequestDto> items = itemRepository.findAllByRequestId(requestId).stream()
                 .map(ItemMapper.INSTANCE::toItemForRequestDto)
                 .filter(Objects::nonNull)

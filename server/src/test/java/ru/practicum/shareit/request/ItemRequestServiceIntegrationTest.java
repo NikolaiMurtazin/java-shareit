@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestInfoDto;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -53,6 +55,16 @@ class ItemRequestServiceIntegrationTest {
     }
 
     @Test
+    void createItemRequest_UserNotFound_ShouldThrowNotFoundException() {
+        long invalidUserId = 999L;
+        ItemRequestDto itemRequestDto = ItemRequestDto.builder()
+                .description("Need a drill")
+                .build();
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.create(invalidUserId, itemRequestDto));
+    }
+
+    @Test
     void testGetAllRequestsByUserId() {
         itemRequestRepository.save(ItemRequest.builder()
                 .description("Request description")
@@ -63,6 +75,13 @@ class ItemRequestServiceIntegrationTest {
         Collection<ItemRequestInfoDto> requests = itemRequestService.getAllByUserId(user.getId());
 
         assertThat(requests).hasSize(1);
+    }
+
+    @Test
+    void getAllByUserId_UserNotFound_ShouldThrowNotFoundException() {
+        long invalidUserId = 999L;
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getAllByUserId(invalidUserId));
     }
 
     @Test
@@ -79,6 +98,13 @@ class ItemRequestServiceIntegrationTest {
     }
 
     @Test
+    void getAllOtherUsers_UserNotFound_ShouldThrowNotFoundException() {
+        long invalidUserId = 999L;
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getAllOtherUsers(invalidUserId, 0, 10));
+    }
+
+    @Test
     void testGetRequestById() {
         ItemRequest itemRequest = itemRequestRepository.save(ItemRequest.builder()
                 .description("Request description")
@@ -90,5 +116,13 @@ class ItemRequestServiceIntegrationTest {
 
         assertThat(requestInfo.getId()).isEqualTo(itemRequest.getId());
         assertThat(requestInfo.getDescription()).isEqualTo("Request description");
+    }
+
+    @Test
+    void getById_UserNotFound_ShouldThrowNotFoundException() {
+        long invalidUserId = 999L;
+        long requestId = 1L;
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getById(invalidUserId, requestId));
     }
 }

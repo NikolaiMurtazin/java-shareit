@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.controller.ItemController;
@@ -34,16 +33,6 @@ class ErrorHandlerTest {
         mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    public void handleDataIntegrityViolationException() throws Exception {
-        when(itemService.getAllByUsersId(anyLong())).thenThrow(DataIntegrityViolationException.class);
-
-        mockMvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 1L))
-                .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 

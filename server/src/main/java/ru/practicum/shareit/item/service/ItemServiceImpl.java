@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemInfoDto> getAllByUsersId(long userId) {
-        checkUserExistence(userId, "GET-ALL-BY-USERS-ID");
+        checkUserExistence(userId);
         return itemRepository.findAllByOwnerId(userId).stream()
                 .sorted(Comparator.comparingLong(Item::getId))
                 .map(item -> getById(userId, item.getId()))
@@ -55,12 +55,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemInfoDto getById(long userId, long itemId) {
-        checkUserExistence(userId, "GET-ITEM-BY-ID");
+        checkUserExistence(userId);
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> {
-                    log.info("GET-ITEM-BY-ID Предмет с id={} не найден", itemId);
-                    return new NotFoundException("Предмета с id=" + itemId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Предмета с id=" + itemId + " не существует"));
         List<Booking> lastBookings = bookingRepository.findLastBookingsByItemId(itemId);
         BookingForItemDto lastBooking = lastBookings.isEmpty() ? null :
                 BookingMapper.INSTANCE.toBookingForItemDto(lastBookings.getFirst());
@@ -79,19 +76,13 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto create(long userId, ItemCreateDto itemCreateDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("CREATE-ITEM Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         Item item = ItemMapper.INSTANCE.toItem(itemCreateDto);
         item.setOwner(user);
 
         if (itemCreateDto.getRequestId() != null) {
             ItemRequest request = itemRequestRepository.findById(itemCreateDto.getRequestId())
-                    .orElseThrow(() -> {
-                        log.info("CREATE-ITEM Запрос с id={} не найден", itemCreateDto.getRequestId());
-                        return new NotFoundException("Запроса с id=" + itemCreateDto.getRequestId() + " не существует");
-                    });
+                    .orElseThrow(() -> new NotFoundException("Запроса с id=" + itemCreateDto.getRequestId() + " не существует"));
             item.setRequest(request);
         }
         return ItemMapper.INSTANCE.toItemDto(itemRepository.save(item));
@@ -100,12 +91,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto update(long userId, long itemId, ItemUpdateDto itemUpdateDto) {
-        checkUserExistence(userId, "UPDATE-ITEM");
+        checkUserExistence(userId);
         Item updatedItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> {
-                    log.info("UPDATE-ITEM Предмет с id={} не найден", itemId);
-                    return new NotFoundException("Предмета с id=" + itemId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Предмета с id=" + itemId + " не существует"));
         if (userId != (updatedItem.getOwner().getId())) {
             throw new NotFoundException("The user's ID is different from the owner's ID");
         }
@@ -127,8 +115,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public void delete(long itemId, long userId) {
-        checkUserExistence(userId, "DELETE-ITEM");
-        checkItemExistence(itemId, "DELETE-ITEM");
+        checkUserExistence(userId);
+        checkItemExistence(itemId);
         itemRepository.deleteByIdAndOwnerId(itemId, userId);
     }
 
@@ -145,15 +133,9 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public CommentDto addComment(long itemId, long userId, CommentDto commentDto) {
         User author = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("ADD-COMMENT Пользователь с id={} не найден", userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> {
-                    log.info("ADD-COMMENT Предмет с id={} не найден", itemId);
-                    return new NotFoundException("Предмета с id=" + itemId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Предмета с id=" + itemId + " не существует"));
 
         List<Booking> endedBookings = bookingRepository.findLastBookingsByItemId(itemId);
 
@@ -172,19 +154,13 @@ public class ItemServiceImpl implements ItemService {
         throw new IllegalArgumentException("Вы не можете оставить отзыв на данный предмет.");
     }
 
-    private void checkUserExistence(long userId, String method) {
+    private void checkUserExistence(long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.info("{} Пользователь с id={} не найден", method, userId);
-                    return new NotFoundException("Пользователя с id=" + userId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " не существует"));
     }
 
-    private void checkItemExistence(long itemId, String method) {
+    private void checkItemExistence(long itemId) {
         itemRepository.findById(itemId)
-                .orElseThrow(() -> {
-                    log.info("{} Предмет с id={} не найден", method, itemId);
-                    return new NotFoundException("Предмета с id=" + itemId + " не существует");
-                });
+                .orElseThrow(() -> new NotFoundException("Предмета с id=" + itemId + " не существует"));
     }
 }
